@@ -1,9 +1,11 @@
 # mcp-clinical-doc-agent
 
-> **MCP server + LangGraph agent for clinical trial protocol analysis.**
-> Exposes four MCP tools (`list_documents`, `extract_entities`, `cluster_adverse_events`, `summarize_protocol`) consumable directly by Claude Code or Claude Desktop, and drives them through a LangGraph state machine (ingest → extract → cluster → summarize) that emits a Pydantic-validated JSON report with a built-in eval step. FastAPI HTTP surface and a slim Docker image for AWS deployment.
+> **MCP-Orchestrated Clinical Document Agent — May 2026**
+> *Python · FastAPI · LangGraph · Anthropic MCP · Claude Code · AWS · Pandas*
 
-<sub>**Resume bullet (placeholder — replace with your own):** Designed and shipped an MCP server + LangGraph agent that ingests FDA-style clinical trial protocols, performs entity extraction, clusters adverse events by body system, and produces validated JSON summaries; integrated with Claude Code as a native tool provider and containerized for AWS deployment.</sub>
+- Built a **FastAPI** backend exposing custom **MCP server** tools to a **Claude Code** agent for end-to-end document analysis on synthetic FDA-style clinical trial protocols.
+- Orchestrated a multi-step agentic workflow with **LangGraph**: ingestion, entity extraction, adverse-event clustering, and structured summary generation with evaluation guardrails.
+- Containerized inference on **AWS** with **Pandas**-based ETL for reproducible, analysis-ready outputs; published as an open-source reference implementation on GitHub.
 
 ---
 
@@ -13,6 +15,7 @@
 - **LangGraph state machine** that orchestrates the same tools as a deterministic 4-node pipeline with typed state, error capture, and a final eval gate.
 - **Pydantic v2 schemas** for every cross-boundary object (`DocumentRef`, `ClinicalEntity`, `AdverseEvent`, `AdverseEventCluster`, `ProtocolSummary`, `WorkflowReport`, `EvalResult`).
 - **FastAPI HTTP surface** mirroring the MCP tools so the same business logic runs over HTTP for non-MCP clients.
+- **Pandas-based ETL** that flattens the workflow report into five tidy, join-ready CSVs (`documents`, `entities`, `adverse_events`, `cluster_summary`, `summaries`).
 - **Container-ready** for AWS — multi-stage Dockerfile, healthcheck, docker-compose for local parity.
 - **Offline-first** — works with zero external API calls. Set `ANTHROPIC_API_KEY` to upgrade the summarizer to Claude Haiku 4.5.
 
@@ -135,8 +138,34 @@ Each node calls one MCP tool and updates the shared state. `evaluate()` runs aft
 Output is a Pydantic-validated `WorkflowReport` written to `reports/run.json`. The CLI exits non-zero on eval failure.
 
 ```bash
-uv run mcp-clinical-doc-workflow --output reports/run.json --print
+uv run mcp-clinical-doc-workflow --output reports/run.json --etl-dir reports/etl
 ```
+
+---
+
+## Pandas ETL — analysis-ready outputs
+
+After the eval gate passes, the report is flattened into five tidy CSVs under `reports/etl/`:
+
+| File | Granularity | Joins on |
+|---|---|---|
+| `documents.csv` | one row per protocol | `id` |
+| `entities.csv` | one row per extracted entity | `document_id` → `documents.id` |
+| `adverse_events.csv` | one row per AE mention (with `cluster_label`) | `document_id` → `documents.id` |
+| `cluster_summary.csv` | one row per body-system cluster, with `event_count` and top 3 events | `cluster_label` |
+| `summaries.csv` | one row per protocol summary | `document_id` → `documents.id` |
+
+Example `cluster_summary.csv`:
+
+```
+cluster_label,event_count,distinct_terms,top_events
+gastrointestinal,19,6,nausea(7); diarrhea(5); constipation(3)
+neurological,15,4,headache(7); fatigue(4); dizziness(3)
+dermatological,11,4,injection site reaction(4); rash(3); pruritus(3)
+hepatic,11,4,elevated ast(4); elevated alt(4); transaminitis(2)
+```
+
+Drop these directly into a notebook with `pd.read_csv(...)`, or load into Athena / Snowflake / DuckDB.
 
 Example tail of a run:
 
@@ -197,6 +226,7 @@ mcp-clinical-doc-agent/
 │   ├── schema.py                      # Pydantic v2 models
 │   ├── server.py                      # MCP server (stdio)
 │   ├── api.py                         # FastAPI HTTP surface
+│   ├── etl.py                         # Pandas ETL: report -> 5 CSVs
 │   └── graph/
 │       ├── workflow.py                # LangGraph state machine
 │       ├── nodes.py                   # ingest / extract / cluster / summarize

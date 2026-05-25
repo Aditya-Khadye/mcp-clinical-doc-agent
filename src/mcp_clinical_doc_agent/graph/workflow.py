@@ -7,12 +7,12 @@ Returns a ``WorkflowReport`` (Pydantic) and writes it to disk as JSON.
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 from langgraph.graph import END, START, StateGraph
 
+from .. import etl
 from ..schema import WorkflowReport
 from .eval import evaluate
 from .nodes import (
@@ -75,6 +75,12 @@ def main() -> None:
         help="Where to write the JSON report (default: reports/run.json)",
     )
     parser.add_argument(
+        "--etl-dir",
+        type=str,
+        default="reports/etl",
+        help="Directory for Pandas-derived CSVs (default: reports/etl). Set to empty to skip.",
+    )
+    parser.add_argument(
         "--print", action="store_true", help="Also print the report to stdout."
     )
     args = parser.parse_args()
@@ -85,6 +91,10 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(report.model_dump_json(indent=2))
 
+    csv_paths: list[Path] = []
+    if args.etl_dir:
+        csv_paths = etl.write_csvs(report, args.etl_dir)
+
     eval_result = report.eval_result
     status = "PASS" if eval_result.passed else "FAIL"
     print(f"[workflow] eval: {status}", file=sys.stderr)
@@ -93,6 +103,11 @@ def main() -> None:
     for note in eval_result.notes:
         print(f"  · {note}", file=sys.stderr)
     print(f"[workflow] report written to: {out_path}", file=sys.stderr)
+    if csv_paths:
+        print(
+            f"[workflow] etl: {len(csv_paths)} CSVs → {csv_paths[0].parent}",
+            file=sys.stderr,
+        )
 
     if args.print:
         print(report.model_dump_json(indent=2))
