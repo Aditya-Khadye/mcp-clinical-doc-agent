@@ -1,0 +1,44 @@
+[project]
+name = "mcp-clinical-doc-agent"
+version = "0.1.0"
+description = "MCP server + LangGraph agent for clinical trial protocol analysis"
+readme = "README.md"
+authors = [
+    { name = "Aditya Khadye", email = "adityakhadye0406@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.2.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
+    "langgraph>=0.2.50",
+    "langchain-core>=0.3.0",
+    "anthropic>=0.39.0",
+    "python-dotenv>=1.0.1",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.7.0",
+]
+
+[project.scripts]
+mcp-clinical-doc-agent = "mcp_clinical_doc_agent.api:main"
+mcp-clinical-doc-server = "mcp_clinical_doc_agent.server:main"
+mcp-clinical-doc-workflow = "mcp_clinical_doc_agent.graph.workflow:main"
+
+[build-system]
+requires = ["uv_build>=0.11.8,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "clinical-doc-agent": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/ABSOLUTE/PATH/TO/mcp-clinical-doc-agent",
+        "run",
+        "mcp-clinical-doc-server"
+      ],
+      "env": {
+        "ANTHROPIC_API_KEY": "sk-ant-..."
+      }
+    }
+  }
+}

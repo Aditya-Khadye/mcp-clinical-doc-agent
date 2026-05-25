@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "clinical-doc-agent": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        ".",
+        "run",
+        "mcp-clinical-doc-server"
+      ],
+      "env": {}
+    }
+  }
+}
