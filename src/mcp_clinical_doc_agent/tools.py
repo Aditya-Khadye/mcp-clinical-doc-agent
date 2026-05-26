@@ -28,12 +28,15 @@ DATA_DIR = Path(os.getenv("CLINICAL_DATA_DIR", Path(__file__).resolve().parents[
 
 _PHASE_RE = re.compile(r"\bPhase\s+(I{1,3}|IV|1|2|3|4|2b|3b)\b", re.IGNORECASE)
 _POPULATION_RE = re.compile(r"\b(?:n|N)\s*=\s*(\d{2,5})\b")
-_INDICATION_RE = re.compile(r"^\s*\*?\*?Indication\*?\*?\s*[:\-]\s*(.+)$", re.MULTILINE)
+_INDICATION_RE = re.compile(
+    r"^\s*\*{0,2}\s*Indication\s*[:\-]\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$", re.MULTILINE
+)
 _INTERVENTION_RE = re.compile(
-    r"^\s*\*?\*?Intervention\*?\*?\s*[:\-]\s*(.+)$", re.MULTILINE
+    r"^\s*\*{0,2}\s*Intervention\s*[:\-]\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$", re.MULTILINE
 )
 _PRIMARY_ENDPOINT_RE = re.compile(
-    r"^\s*\*?\*?Primary Endpoint\*?\*?\s*[:\-]\s*(.+)$", re.MULTILINE
+    r"^\s*\*{0,2}\s*Primary Endpoint\s*[:\-]\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$",
+    re.MULTILINE,
 )
 
 # Crude clinical lexicon for offline entity extraction. Real systems would use SciSpacy / MetaMap.

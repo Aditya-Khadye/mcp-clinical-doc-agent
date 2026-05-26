@@ -40,3 +40,17 @@ def test_summarize_protocol_has_required_fields():
     assert summary["title"]
     assert summary["adverse_event_count"] >= 0
     assert len(summary["summary_text"]) >= 80
+
+
+def test_extracted_fields_have_no_markdown_artifacts():
+    """Regression: field-extraction regex must strip trailing ``**`` from bold headers."""
+    for doc in tools.list_documents():
+        for field in ("indication",):
+            value = doc.get(field) or ""
+            assert not value.startswith("*"), (doc["id"], field, value)
+            assert not value.endswith("*"), (doc["id"], field, value)
+        summary = tools.summarize_protocol(doc["id"])
+        for field in ("indication", "intervention", "primary_endpoint"):
+            value = summary.get(field) or ""
+            assert not value.startswith("*"), (doc["id"], field, value)
+            assert not value.endswith("*"), (doc["id"], field, value)

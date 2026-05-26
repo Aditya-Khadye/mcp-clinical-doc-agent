@@ -1,5 +1,9 @@
 # mcp-clinical-doc-agent
 
+[![CI](https://github.com/adityakhadye/mcp-clinical-doc-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/adityakhadye/mcp-clinical-doc-agent/actions/workflows/ci.yml)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **MCP-Orchestrated Clinical Document Agent — May 2026**
 > *Python · FastAPI · LangGraph · Anthropic MCP · Claude Code · AWS · Pandas*
 
@@ -165,7 +169,13 @@ dermatological,11,4,injection site reaction(4); rash(3); pruritus(3)
 hepatic,11,4,elevated ast(4); elevated alt(4); transaminitis(2)
 ```
 
-Drop these directly into a notebook with `pd.read_csv(...)`, or load into Athena / Snowflake / DuckDB.
+Drop these directly into a notebook with `pd.read_csv(...)`, or load into Athena / Snowflake / DuckDB. A small demo script is included:
+
+```bash
+uv run python scripts/analyze.py
+```
+
+…which prints (1) per-protocol entity counts by category, (2) top adverse events overall, and (3) AE burden per protocol joined against `documents.csv`.
 
 Example tail of a run:
 
@@ -231,9 +241,12 @@ mcp-clinical-doc-agent/
 │       ├── workflow.py                # LangGraph state machine
 │       ├── nodes.py                   # ingest / extract / cluster / summarize
 │       └── eval.py                    # Pass/fail report gate
-├── tests/                             # pytest — tools + e2e workflow
-├── scripts/run_workflow.py
-└── reports/                           # JSON output (gitignored)
+├── tests/                             # pytest — tools + workflow + etl
+├── scripts/
+│   ├── run_workflow.py
+│   └── analyze.py                     # Pandas demo over the ETL CSVs
+├── .github/workflows/ci.yml           # tests + lint + smoke-test on push/PR
+└── reports/                           # JSON + CSV output (gitignored)
 ```
 
 ---
@@ -255,4 +268,4 @@ Every protocol has the same canonical sections (Phase, Indication, Intervention,
 
 ## License
 
-MIT (or your preferred license — update this section).
+MIT — see [LICENSE](LICENSE).
