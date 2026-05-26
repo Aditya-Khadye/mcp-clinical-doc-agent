@@ -55,23 +55,18 @@ _DRUG_SUFFIXES = (
     "parin",
     "statin",
 )
-_CONDITION_KEYWORDS = {
-    "non-small cell lung cancer",
-    "nsclc",
-    "heart failure",
-    "hfref",
-    "type 2 diabetes",
-    "rheumatoid arthritis",
-    "major depressive disorder",
-    "depression",
-    "atopic dermatitis",
-    "crohn's disease",
-    "alzheimer's disease",
-    "amyotrophic lateral sclerosis",
-    "als",
-    "urinary tract infection",
-    "uti",
-    "metastatic",
+_CONDITION_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "Non-Small Cell Lung Cancer": ("non-small cell lung cancer", "nsclc"),
+    "Heart Failure with Reduced Ejection Fraction": ("heart failure", "hfref"),
+    "Type 2 Diabetes": ("type 2 diabetes",),
+    "Rheumatoid Arthritis": ("rheumatoid arthritis",),
+    "Major Depressive Disorder": ("major depressive disorder", "depression"),
+    "Atopic Dermatitis": ("atopic dermatitis",),
+    "Crohn's Disease": ("crohn's disease",),
+    "Alzheimer's Disease": ("alzheimer's disease",),
+    "Amyotrophic Lateral Sclerosis": ("amyotrophic lateral sclerosis", "als"),
+    "Urinary Tract Infection": ("urinary tract infection", "uti"),
+    "Metastatic": ("metastatic",),
 }
 
 # Body-system clusters for adverse events
@@ -200,14 +195,12 @@ def extract_entities(
     for d in sorted(drug_candidates):
         entities.append(ClinicalEntity(name=d, category="drug", document_id=document_id))
 
-    # Conditions
-    seen_conditions: set[str] = set()
-    for kw in _CONDITION_KEYWORDS:
-        if kw in lower and kw not in seen_conditions:
-            seen_conditions.add(kw)
+    # Conditions (one entity per canonical name, even if multiple aliases match)
+    for canonical, aliases in _CONDITION_KEYWORDS.items():
+        if any(alias in lower for alias in aliases):
             entities.append(
                 ClinicalEntity(
-                    name=kw.title(), category="condition", document_id=document_id
+                    name=canonical, category="condition", document_id=document_id
                 )
             )
 
