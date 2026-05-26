@@ -261,8 +261,9 @@ Every protocol has the same canonical sections (Phase, Indication, Intervention,
 
 ## Demo
 
-> _TODO: add a screen recording / GIF of Claude Code calling the MCP tools._
-> Capture suggestion: open this repo in Claude Code, run `/mcp` to show the server connected, then ask "Cluster adverse events across all protocols and pick the top three by frequency." Record the inline tool-use blocks rendering with their inputs and outputs.
+Claude Code connecting to the MCP server, calling all four tools in sequence, and producing a natural-language answer:
+
+![Claude Code calling the clinical-doc-agent MCP tools](docs/demo.gif)
 
 ---
 
